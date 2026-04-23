@@ -14,7 +14,7 @@ const fs       = require('fs');
 const DB_PATH = path.join(__dirname, 'library.db');
 
 if (fs.existsSync(DB_PATH)) {
-  fs.unlinkSync(DB_PATH);
+  console.log("Creating new database...");
   console.log('🗑  Old database removed.');
 }
 
