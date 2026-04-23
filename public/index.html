@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>School Library System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     AUTH SCREEN (Login + Forgot Password)
+════════════════════════════════════════════ -->
+<div id="auth-screen">
+
+  <!-- Left branding panel -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">📚</div>
+      <h1>School Library Management System</h1>
+      <p>A complete digital portal for managing books, students, and borrowing records — beautifully designed for schools.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><div class="auth-feature-dot"></div>Full book catalogue with availability</div>
+        <div class="auth-feature"><div class="auth-feature-dot"></div>Student registration & management</div>
+        <div class="auth-feature"><div class="auth-feature-dot"></div>Automated fines — KSh 5/day overdue</div>
+        <div class="auth-feature"><div class="auth-feature-dot"></div>Password change &amp; security question reset</div>
+        <div class="auth-feature"><div class="auth-feature-dot"></div>Separate librarian &amp; student portals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="auth-right">
+    <div class="auth-panel">
+
+      <!-- ── LOGIN PANEL ── -->
+      <div id="panel-login">
+        <h2>Welcome back</h2>
+        <p class="auth-sub">Sign in to access your portal</p>
+
+        <div class="role-tabs">
+          <button class="role-tab active" id="tab-lib" onclick="setRole('librarian')">📋 Librarian</button>
+          <button class="role-tab"         id="tab-stu" onclick="setRole('student')">🎓 Student</button>
+        </div>
+
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="inp-user" placeholder="Enter your username" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="field-pw-wrap">
+            <input type="password" id="inp-pass" placeholder="Enter your password"
+                   autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('inp-pass',this)" tabindex="-1">👁</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign In →</button>
+
+        <div class="auth-footer-link">
+          <button class="btn-link" onclick="showPanel('panel-fp-1')">Forgot your password?</button>
+        </div>
+
+        <div class="demo-box">
+          <strong>Demo Credentials</strong><br/>
+          Librarian: <code>admin</code> / <code>admin123</code><br/>
+          Student: &nbsp;<code>alice</code> / <code>pass123</code>
+        </div>
+      </div>
+
+      <!-- ── FORGOT PASSWORD: Step 1 — Enter Username ── -->
+      <div id="panel-fp-1" style="display:none">
+        <h2>Reset Password</h2>
+        <p class="auth-sub">We'll verify your identity using your security question</p>
+
+        <div class="step-indicator">
+          <div class="step-dot active" id="sd1">1</div>
+          <div class="step-line" id="sl1"></div>
+          <div class="step-dot" id="sd2">2</div>
+          <div class="step-line" id="sl2"></div>
+          <div class="step-dot" id="sd3">3</div>
+        </div>
+
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="fp-username" placeholder="Enter your username"/>
+          <div class="field-error" id="fp1-err"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="fpLookup()">Continue →</button>
+        <div class="auth-footer-link">
+          <button class="btn-link" onclick="showPanel('panel-login')">← Back to Sign In</button>
+        </div>
+      </div>
+
+      <!-- ── FORGOT PASSWORD: Step 2 — Answer Security Question ── -->
+      <div id="panel-fp-2" style="display:none">
+        <h2>Security Question</h2>
+        <p class="auth-sub">Answer your question to verify it's you</p>
+
+        <div class="step-indicator">
+          <div class="step-dot done" id="sd1b">✓</div>
+          <div class="step-line done" id="sl1b"></div>
+          <div class="step-dot active" id="sd2b">2</div>
+          <div class="step-line" id="sl2b"></div>
+          <div class="step-dot" id="sd3b">3</div>
+        </div>
+
+        <div class="alert alert-blue" style="margin-bottom:1rem">
+          <span>👤</span>
+          <span>Account: <strong id="fp-name-display"></strong></span>
+        </div>
+
+        <div class="field">
+          <label>Security Question</label>
+          <div id="fp-question-display" style="padding:11px 14px;border:1.5px solid var(--border-mid);border-radius:var(--r-md);background:var(--bg-page);font-size:14px;color:var(--text-2);font-style:italic"></div>
+        </div>
+
+        <div class="field">
+          <label>Your Answer</label>
+          <div class="field-pw-wrap">
+            <input type="password" id="fp-answer" placeholder="Enter your answer (not case-sensitive)"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('fp-answer',this)" tabindex="-1">👁</button>
+          </div>
+          <div class="field-hint">Answers are not case-sensitive</div>
+          <div class="field-error" id="fp2-err"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="fpVerify()">Verify Answer →</button>
+        <div class="auth-footer-link">
+          <button class="btn-link" onclick="showPanel('panel-fp-1')">← Back</button>
+        </div>
+      </div>
+
+      <!-- ── FORGOT PASSWORD: Step 3 — Set New Password ── -->
+      <div id="panel-fp-3" style="display:none">
+        <h2>New Password</h2>
+        <p class="auth-sub">Choose a strong new password</p>
+
+        <div class="step-indicator">
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot done">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot active">3</div>
+        </div>
+
+        <div class="field">
+          <label>New Password</label>
+          <div class="field-pw-wrap">
+            <input type="password" id="fp-newpass" placeholder="At least 6 characters" oninput="checkPwStrength('fp-newpass','fp-strength')"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('fp-newpass',this)" tabindex="-1">👁</button>
+          </div>
+          <div class="pw-strength" id="fp-strength" style="display:none">
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="fp-strength-fill"></div></div>
+            <div class="pw-strength-label" id="fp-strength-label"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Confirm New Password</label>
+          <div class="field-pw-wrap">
+            <input type="password" id="fp-confirmpass" placeholder="Repeat your new password"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('fp-confirmpass',this)" tabindex="-1">👁</button>
+          </div>
+          <div class="field-error" id="fp3-err"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="fpReset()">Reset Password →</button>
+      </div>
+
+      <!-- ── FORGOT PASSWORD: Success ── -->
+      <div id="panel-fp-done" style="display:none">
+        <div class="form-success">
+          <span class="success-icon">🎉</span>
+          <h3>Password Reset!</h3>
+          <p>Your password has been changed successfully. You can now sign in with your new password.</p>
+          <button class="btn btn-success" style="width:100%" onclick="showPanel('panel-login')">Go to Sign In →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════ -->
+<div id="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">📚</div>
+      <div class="sidebar-title">Library System<small>School Portal</small></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sb-name">User</div>
+        <div class="sidebar-user-role" id="sb-role">Role</div>
+      </div>
+    </div>
+    <nav id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-signout" onclick="doLogout()">⬡ &nbsp;Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="topbar-clock" id="topbar-clock"></div>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- ╔══════════════════════════════════
+           LIBRARIAN PAGES
+      ╚═══════════════════════════════════ -->
+
+      <div class="page" id="pg-overview">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>Dashboard</h2>
+            <p>Good <span id="greeting-time">morning</span>, <span id="greeting-name">Librarian</span></p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="refreshOverdue()">↻ Refresh Overdue</button>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent Transactions</span>
+              <button class="btn btn-ghost btn-sm" onclick="showPage('returns')">View All →</button>
+            </div>
+            <div class="table-wrap" id="recent-table"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Books by Category</span></div>
+            <div class="card-body" id="cat-breakdown"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-books">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Book Catalogue</h2><p>Manage the library's collection</p></div>
+          <button class="btn btn-success" onclick="openModal('m-add-book')">+ Add Book</button>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="book-q" placeholder="🔍  Search title, author, ISBN…" oninput="loadBooks()"/>
+          <select id="book-cat" onchange="loadBooks()"><option value="all">All Categories</option></select>
+        </div>
+        <div class="card"><div class="table-wrap" id="books-tbl"></div></div>
+      </div>
+
+      <div class="page" id="pg-issue">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Issue a Book</h2><p>Assign a book to a student</p></div>
+        </div>
+        <div style="max-width:640px">
+          <div class="card"><div class="card-body">
+            <div class="form-grid">
+              <div class="field"><label>Student</label><select id="iss-student"></select></div>
+              <div class="field"><label>Book (available copies)</label><select id="iss-book"></select></div>
+              <div class="field"><label>Issue Date</label><input type="date" id="iss-date"/></div>
+              <div class="field"><label>Due Date</label><input type="date" id="iss-due"/></div>
+              <div class="field span-2"><label>Notes (optional)</label><textarea id="iss-notes" placeholder="Any notes…"></textarea></div>
+            </div>
+            <div class="form-actions"><button class="btn btn-success" onclick="doIssue()">Issue Book →</button></div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-returns">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Returns &amp; Loans</h2><p>Process returns and view all active loans</p></div>
+        </div>
+        <div class="filter-row">
+          <select id="ret-status" onchange="loadReturns()">
+            <option value="issued">Active Loans</option>
+            <option value="overdue">Overdue</option>
+            <option value="returned">History (Returned)</option>
+          </select>
+        </div>
+        <div class="card"><div class="table-wrap" id="returns-tbl"></div></div>
+      </div>
+
+      <div class="page" id="pg-students">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Students</h2><p>Register and manage student records</p></div>
+          <button class="btn btn-success" onclick="openModal('m-add-student')">+ Register Student</button>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="stu-q" placeholder="🔍  Search name or student ID…" oninput="loadStudents()"/>
+        </div>
+        <div class="card"><div class="table-wrap" id="students-tbl"></div></div>
+      </div>
+
+      <div class="page" id="pg-activity">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Activity Log</h2><p>Audit trail of all system actions</p></div>
+        </div>
+        <div class="card"><div class="table-wrap" id="activity-tbl"></div></div>
+      </div>
+
+      <!-- ╔══════════════════════════════════
+           STUDENT PAGES
+      ╚═══════════════════════════════════ -->
+
+      <div class="page" id="pg-stu-overview">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h2>My Dashboard</h2>
+            <p>Welcome back, <span id="stu-welcome-name">Student</span></p>
+          </div>
+        </div>
+        <div class="stats-grid" id="stu-stats"></div>
+        <div class="card" id="stu-active-card">
+          <div class="card-header"><span class="card-title">Currently Borrowed</span></div>
+          <div class="table-wrap" id="stu-active-tbl"></div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-search">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Search Books</h2><p>Browse the full library catalogue</p></div>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="srch-q" placeholder="🔍  Search title, author, ISBN, category…" oninput="doSearch()"/>
+          <select id="srch-cat" onchange="doSearch()"><option value="all">All Categories</option></select>
+        </div>
+        <div class="books-grid" id="search-grid"></div>
+      </div>
+
+      <div class="page" id="pg-my-books">
+        <div class="page-header">
+          <div class="page-header-left"><h2>My Books</h2><p>Your borrowing records and history</p></div>
+        </div>
+        <div id="my-books-body"></div>
+      </div>
+
+      <!-- ╔══════════════════════════════════
+           ACCOUNT SETTINGS (both roles)
+      ╚═══════════════════════════════════ -->
+
+      <div class="page" id="pg-settings">
+        <div class="page-header">
+          <div class="page-header-left"><h2>Account Settings</h2><p>Manage your password and security</p></div>
+        </div>
+
+        <div class="settings-grid">
+
+          <!-- Change Password -->
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div class="settings-section-icon green">🔑</div>
+              <div>
+                <div class="settings-section-title">Change Password</div>
+                <div class="settings-section-desc">Update your account password</div>
+              </div>
+            </div>
+            <div class="settings-section-body" id="cp-body">
+              <div class="field">
+                <label>Current Password</label>
+                <div class="field-pw-wrap">
+                  <input type="password" id="cp-current" placeholder="Your current password"/>
+                  <button class="pw-toggle" type="button" onclick="togglePw('cp-current',this)" tabindex="-1">👁</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>New Password</label>
+                <div class="field-pw-wrap">
+                  <input type="password" id="cp-new" placeholder="At least 6 characters" oninput="checkPwStrength('cp-new','cp-strength')"/>
+                  <button class="pw-toggle" type="button" onclick="togglePw('cp-new',this)" tabindex="-1">👁</button>
+                </div>
+                <div class="pw-strength" id="cp-strength" style="display:none">
+                  <div class="pw-strength-bar"><div class="pw-strength-fill" id="cp-strength-fill"></div></div>
+                  <div class="pw-strength-label" id="cp-strength-label"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Confirm New Password</label>
+                <div class="field-pw-wrap">
+                  <input type="password" id="cp-confirm" placeholder="Repeat new password"/>
+                  <button class="pw-toggle" type="button" onclick="togglePw('cp-confirm',this)" tabindex="-1">👁</button>
+                </div>
+              </div>
+              <button class="btn btn-success" style="width:100%" onclick="doChangePassword()">Update Password</button>
+            </div>
+          </div>
+
+          <!-- Security Question -->
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div class="settings-section-icon blue">🛡️</div>
+              <div>
+                <div class="settings-section-title">Security Question</div>
+                <div class="settings-section-desc">Used to recover your account if you forget your password</div>
+              </div>
+            </div>
+            <div class="settings-section-body" id="sq-body">
+              <div class="alert alert-blue" id="sq-status-alert" style="margin-bottom:1rem;display:none"></div>
+              <div class="field">
+                <label>Choose a Question</label>
+                <select id="sq-question"></select>
+              </div>
+              <div class="field">
+                <label>Your Answer</label>
+                <div class="field-pw-wrap">
+                  <input type="password" id="sq-answer" placeholder="Your answer (not case-sensitive)"/>
+                  <button class="pw-toggle" type="button" onclick="togglePw('sq-answer',this)" tabindex="-1">👁</button>
+                </div>
+                <div class="field-hint">Answer will be stored securely. Not case-sensitive.</div>
+              </div>
+              <div class="field">
+                <label>Current Password (to confirm)</label>
+                <div class="field-pw-wrap">
+                  <input type="password" id="sq-currentpw" placeholder="Enter your current password"/>
+                  <button class="pw-toggle" type="button" onclick="togglePw('sq-currentpw',this)" tabindex="-1">👁</button>
+                </div>
+              </div>
+              <button class="btn btn-success" style="width:100%" onclick="doSetSecurityQuestion()">Save Security Question</button>
+            </div>
+          </div>
+
+        </div><!-- /settings-grid -->
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- ════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════ -->
+
+<!-- Add Book -->
+<div class="overlay" id="m-add-book">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Book</h3>
+      <button class="modal-close" onclick="closeModal('m-add-book')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span-2"><label>Title *</label><input type="text" id="nb-title" placeholder="Full book title"/></div>
+        <div class="field"><label>Author *</label><input type="text" id="nb-author" placeholder="Author name"/></div>
+        <div class="field"><label>ISBN</label><input type="text" id="nb-isbn" placeholder="978-…"/></div>
+        <div class="field">
+          <label>Category *</label>
+          <select id="nb-cat">
+            <option>Computer Science</option><option>Mathematics</option><option>Science</option>
+            <option>Literature</option><option>History</option><option>Geography</option>
+            <option>Languages</option><option>Arts</option><option>Religion</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Publisher</label><input type="text" id="nb-pub" placeholder="Publisher name"/></div>
+        <div class="field"><label>Year Published</label><input type="number" id="nb-year" min="1900" max="2030" placeholder="2024"/></div>
+        <div class="field"><label>Number of Copies</label><input type="number" id="nb-copies" value="1" min="1"/></div>
+        <div class="field"><label>Cover Colour</label><input type="color" id="nb-color" value="#2D6A4F" style="height:44px;padding:4px 8px;cursor:pointer"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-book')">Cancel</button>
+      <button class="btn btn-success" onclick="submitBook()">Add Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Student -->
+<div class="overlay" id="m-add-student">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Register New Student</h3>
+      <button class="modal-close" onclick="closeModal('m-add-student')">✕</button>
+    </div>
+    <div class="modal-body" id="m-add-student-body">
+      <div class="alert alert-blue" style="margin-bottom:1rem">
+        ℹ️ &nbsp;Fill in the student's details and create their login credentials. Share the username and password with the student so they can sign in.
+      </div>
+      <div class="form-grid">
+        <div class="field span-2">
+          <label>Full Name *</label>
+          <input type="text" id="ns-name" placeholder="Student's full name"/>
+        </div>
+        <div class="field">
+          <label>Grade / Form *</label>
+          <select id="ns-grade">
+            <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="ns-phone" placeholder="07XX XXX XXX"/>
+        </div>
+        <div class="field span-2">
+          <label>Email</label>
+          <input type="email" id="ns-email" placeholder="student@school.ac.ke"/>
+        </div>
+
+        <!-- Login credentials section -->
+        <div class="field span-2" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:4px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">
+            🔑 Login Credentials
+          </div>
+        </div>
+        <div class="field">
+          <label>Username *</label>
+          <input type="text" id="ns-username" placeholder="e.g. alice or juma2026"
+                 autocomplete="off" spellcheck="false"/>
+          <div class="field-hint">Lowercase letters, numbers, no spaces</div>
+        </div>
+        <div class="field">
+          <label>Temporary Password *</label>
+          <div class="field-pw-wrap">
+            <input type="text" id="ns-password" placeholder="Min. 6 characters"
+                   autocomplete="off" spellcheck="false"/>
+          </div>
+          <div class="field-hint">Student should change this after first login</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success panel shown after registration -->
+    <div id="m-add-student-success" style="display:none">
+      <div class="modal-body">
+        <div class="form-success" style="padding:1rem 0 0.5rem">
+          <span class="success-icon">🎉</span>
+          <h3>Student Registered!</h3>
+          <p>Share these credentials with the student so they can sign in.</p>
+        </div>
+        <div style="background:var(--bg-page);border:1.5px solid var(--border-mid);border-radius:var(--r-lg);padding:1.25rem;margin-top:1rem">
+          <table style="width:100%;font-size:14px;border-collapse:collapse">
+            <tr><td style="color:var(--text-muted);padding:5px 0;width:130px">Student ID</td>
+                <td style="font-weight:600;font-family:monospace" id="succ-sid">—</td></tr>
+            <tr><td style="color:var(--text-muted);padding:5px 0">Full Name</td>
+                <td style="font-weight:600" id="succ-name">—</td></tr>
+            <tr><td style="color:var(--text-muted);padding:5px 0">Username</td>
+                <td><code style="background:var(--green-light);color:var(--green-dark);padding:2px 10px;border-radius:6px;font-size:14px" id="succ-username">—</code></td></tr>
+            <tr><td style="color:var(--text-muted);padding:5px 0">Password</td>
+                <td><code style="background:var(--amber-light);color:var(--amber);padding:2px 10px;border-radius:6px;font-size:14px" id="succ-password">—</code></td></tr>
+          </table>
+        </div>
+        <div class="alert alert-amber" style="margin-top:12px">
+          ⚠️ &nbsp;Write these down before closing. The password <strong>will not be shown again</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer" id="m-add-student-footer">
+      <button class="btn btn-ghost" onclick="closeModal('m-add-student')">Cancel</button>
+      <button class="btn btn-success" onclick="submitStudent()">Register Student</button>
+    </div>
+    <div class="modal-footer" id="m-add-student-done-footer" style="display:none">
+      <button class="btn btn-success" style="width:100%" onclick="closeStudentModal()">Done — Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Return Confirm -->
+<div class="overlay" id="m-return">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3>Confirm Return</h3>
+      <button class="modal-close" onclick="closeModal('m-return')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="return-msg" style="font-size:14px;color:var(--text-2);line-height:1.6"></p>
+      <div id="fine-preview" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('m-return')">Cancel</button>
+      <button class="btn btn-success" id="return-confirm-btn">Confirm Return</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

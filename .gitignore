@@ -1,0 +1,8 @@
+node_modules/
+database/library.db
+database/*.db
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.log
